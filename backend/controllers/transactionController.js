@@ -1,5 +1,5 @@
 const transactionService = require("../services/transactionService");
-const Transaction = require("../models/transactionModel");
+
 // Handle individual tip
 exports.tipIndividual = async (req, res) => {
   const { guestId, staffId, amount } = req.body;
@@ -18,33 +18,49 @@ exports.tipIndividual = async (req, res) => {
 
 // Handle team tip
 exports.tipTeam = async (req, res) => {
-  const { guestId, teamPoolId, amount, teamMembers } = req.body;
+  const { guestId, teamPoolId, amount } = req.body;
 
   try {
-    // Send tip to team pool
-    const status = await transactionService.sendTeamTip(
-      guestId,
-      teamPoolId,
-      amount
-    );
-
-    if (status === "SUCCESS") {
-      // Distribute tip among team members
-      await transactionService.distributeTeamTip(
-        teamPoolId,
-        teamMembers,
-        amount
-      );
-      res
-        .status(200)
-        .json({ message: "Team tip sent and distributed successfully" });
-    } else {
-      res.status(500).json({ error: "Failed to send team tip" });
+    // Validate request inputs
+    if (!guestId || !teamPoolId || !amount || amount <= 0) {
+      console.error("Validation failed for input:", req.body);
+      return res.status(400).json({
+        error:
+          "Invalid input: Guest ID, Team Pool ID, and a positive amount are required.",
+      });
     }
+
+    console.log("Initiating team tipping process...");
+    console.log(`Guest ID: ${guestId}, Team Pool ID: ${teamPoolId}, Amount: ${amount}`);
+
+    // Step 1: Send the tip to the team pool
+    console.log("Sending tip to the team pool...");
+    const tipStatus = await transactionService.sendTeamTip(guestId, teamPoolId, amount);
+
+    console.log("Tip Status:", tipStatus);
+    if (tipStatus !== "SUCCESS") {
+      console.error("Failed to send team tip to the pool.");
+      return res.status(500).json({ error: `Failed to send team tip to the pool. Hedera status: ${tipStatus}` });
+    }
+
+    console.log("Team tip successfully sent to the pool. Proceeding with distribution...");
+
+    // Step 2: Distribute the tip among active team members
+    console.log("Calling distributeTeamTip...");
+    const distributedTransactions = await transactionService.distributeTeamTip(teamPoolId, amount);
+
+    console.log("Distributed Transactions:", distributedTransactions);
+
+    res.status(200).json({
+      message: "Team tip sent and distributed successfully.",
+      transactions: distributedTransactions,
+    });
   } catch (error) {
+    console.error("Error in tipTeam controller:", error.message);
     res.status(500).json({ error: error.message });
   }
 };
+
 
 // Fetch transaction status
 exports.getTransactionStatus = async (req, res) => {
@@ -102,6 +118,35 @@ exports.listUserTransactions = async (req, res) => {
     );
 
     res.status(200).json(transactions);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Fetch PENDING transactions for admin review
+exports.getPendingTransactions = async (req, res) => {
+  try {
+    const pendingTransactions =
+      await transactionService.getPendingTransactions();
+    res.status(200).json(pendingTransactions);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Approve or reject a PENDING transaction (Admin)
+exports.updateTransactionStatus = async (req, res) => {
+  const { transactionId, status } = req.body;
+
+  try {
+    const updatedTransaction = await transactionService.updateTransactionStatus(
+      transactionId,
+      status
+    );
+    res.status(200).json({
+      message: "Transaction status updated successfully",
+      updatedTransaction,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

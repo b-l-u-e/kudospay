@@ -4,7 +4,7 @@ const guestController = require("../controllers/guestController");
 const { protect, authorize } = require("../middleware/authMiddleware");
 
 router.post("/register", guestController.registerGuest); // Public registration route for guests
-router.get("/:guestId", protect, authorize("admin"), guestController.getGuest); // Admin-only access to view a guest
+router.get("/:guestId", protect, guestController.getGuest); // Admin-only access to view a guest
 router.patch(
   "/:guestId",
   protect,

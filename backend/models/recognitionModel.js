@@ -1,7 +1,8 @@
 const mongoose = require("mongoose");
 
 const recognitionNoteSchema = new mongoose.Schema({
-    staffId: { type: String, required: true },
+    recipientId: { type: String, required: true },
+    guestId: { type: String, required: true }, 
     message: { type: String, required: true },
     timestamp: { type: Date, default: Date.now }
 });

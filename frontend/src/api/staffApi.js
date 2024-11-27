@@ -10,8 +10,10 @@ export const getAllStaff = () => API.get("/staff")
 
 
 // Get staff members by company ID (admin or teamPool)
-export const getStaffByCompany = (companyId) =>
-    API.get(`/staff/company/${companyId}`);
+export const getStaffByCompany = async(companyId) =>{
+    console.log("retrieving Staff Data:", companyId); 
+   return await API.get(`/staff/company/${companyId}`);
+}
 
 // Update staff details (admin or teamPool)
 export const updateStaff = (staffId, staffData) =>

@@ -7,7 +7,9 @@ const guestSchema = new mongoose.Schema(
     password: { type: String, required: true },
     role: { type: String, default: "guest", immutable: true },
     hederaAccountId: { type: String, required: true, unique: true },
-    encryptedPrivateKey: { type: String },
+    encryptedPrivateKey: { type: String, required: true },
+    iv: { type: String, required: true },
+    publicKey: { type: String, required: true },
   },
   { timestamps: true }
 );

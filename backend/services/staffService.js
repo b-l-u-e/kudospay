@@ -17,12 +17,8 @@ exports.createStaff = async (data) => {
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
 
-   // Generate Hedera Account ID if not provided
-   let hederaAccountId = data.hederaAccountId;
-   if (!hederaAccountId) {
-       const { accountId } = await generateHederaAccount(10);
-       hederaAccountId = accountId;
-   }
+  // Generate Hedera Account ID if not provided
+  const { accountId, encryptedPrivateKey, publicKey, iv } = await generateHederaAccount(10);
 
   // Create staff with hashed password and link to company
   const staff = new Staff({
@@ -30,7 +26,10 @@ exports.createStaff = async (data) => {
     email,
     password: hashedPassword,
     companyId,
-    hederaAccountId,
+    hederaAccountId: accountId,
+    encryptedPrivateKey,
+    publicKey,
+    iv,
     isActive: false,
   });
   await staff.save();

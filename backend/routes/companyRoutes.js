@@ -1,14 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const companyController = require("../controllers/companyController");
-const { protect, authorize} = require("../middleware/authMiddleware");
+const { protect, authorize } = require("../middleware/authMiddleware");
 
-router.post(
-  "/register",
-  companyController.registerCompany
-);
+router.post("/register", companyController.registerCompany);
 
-router.get("/", companyController.getAllCompanies);
+router.get("/",protect, companyController.getAllCompanies);
 
 router.get(
   "/:companyId",
@@ -36,5 +33,14 @@ router.patch(
   authorize("admin"),
   companyController.deactivateCompany
 );
+
+// Get active staff for a company
+router.get(
+  "/:companyId/active-staff",
+  protect,
+  companyController.getActiveStaff
+);
+
+router.get("/:companyId/active-staff/count",protect, companyController.getActiveStaffCount);
 
 module.exports = router;

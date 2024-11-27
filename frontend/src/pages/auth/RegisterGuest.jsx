@@ -27,27 +27,31 @@ const RegisterGuest = () => {
     setError("");
     setSuccess("");
 
-    console.log("Submitting form data:", formData);
-
     try {
-      console.log("Submitting registration data:", formData);
-      // Call the backend API for guest registration
       const { data } = await registerGuest(formData);
 
-      const {token, guest} = data
+      if (!/\S+@\S+\.\S+/.test(formData.email)) {
+        setError("Please enter a valid email address.");
+        return;
+      }
+    
+      if (
+        formData.hederaAccountId &&
+        !/^0\.0\.[0-9]+$/.test(formData.hederaAccountId)
+      ) {
+        setError("Please enter a valid Hedera Account ID (e.g., 0.0.xxxx).");
+        return;
+      }
+      
+      const { token, guest } = data;
 
-      if(token && guest) {
+      if (token && guest) {
         login(token, guest);
       }
 
       setSuccess("Registration successful! Redirecting...");
-      // Store the token and user data in AuthContext
-      
-
-      // Redirect to the guest dashboard after registration
       setTimeout(() => navigate("/guest/dashboard"), 2000);
     } catch (err) {
-      // Handle errors from the backend
       setError(
         err.response?.data?.error || "Registration failed. Please try again."
       );
@@ -57,13 +61,13 @@ const RegisterGuest = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center mb-6">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-100">
+      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-lg">
+        <h2 className="text-3xl font-extrabold text-center text-blue-600 mb-6">
           Guest Registration
         </h2>
-        {error && <div className="text-red-500 mb-4">{error}</div>}
-        {success && <div className="text-green-500 mb-4">{success}</div>}
+        {error && <div className="text-red-500 text-center mb-4">{error}</div>}
+        {success && <div className="text-green-500 text-center mb-4">{success}</div>}
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Name */}
           <div>
@@ -76,7 +80,7 @@ const RegisterGuest = () => {
               name="username"
               value={formData.username}
               onChange={handleChange}
-              className="w-full mt-1 p-2 border rounded"
+              className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-400"
               required
             />
           </div>
@@ -92,7 +96,7 @@ const RegisterGuest = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full mt-1 p-2 border rounded"
+              className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-400"
               required
             />
           </div>
@@ -108,7 +112,7 @@ const RegisterGuest = () => {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className="w-full mt-1 p-2 border rounded"
+              className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-400"
               required
             />
           </div>
@@ -128,22 +132,22 @@ const RegisterGuest = () => {
               placeholder="0.0.xxxx"
               value={formData.hederaAccountId}
               onChange={handleChange}
-              className="w-full mt-1 p-2 border rounded"
+              className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-400"
             />
           </div>
 
           {/* Submit Button */}
           <button
             type="submit"
-            className={`w-full p-2 rounded text-white ${
-              loading ? "bg-gray-400" : "bg-blue-500 hover:bg-blue-600"
+            className={`w-full py-2 rounded-lg text-white ${
+              loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-600"
             }`}
             disabled={loading}
           >
             {loading ? "Registering..." : "Register"}
           </button>
         </form>
-        <p className="text-center text-gray-600 mt-4">
+        <p className="text-center text-gray-600 mt-6">
           Do you have an account?{" "}
           <a href="/login" className="text-blue-500 hover:underline">
             Login here

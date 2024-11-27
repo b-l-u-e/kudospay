@@ -1,21 +1,26 @@
 const { TopicMessageSubmitTransaction } = require("@hashgraph/sdk");
 const { client } = require("../config/client");
-const { hederatopicId } = require("../config/env");
 const RecognitionNote = require("../models/recognitionModel");
+const { hederaTopicId } = require("../config/env");
 
-exports.submitRecognitionNote = async (staffId, message) => {
-  if (!hederatopicId) {
+exports.submitRecognitionNote = async ({recipientId, guestId, message}) => {
+  if (!hederaTopicId) {
     throw new Error("Hedera topic ID not set in environment variables");
   }
 
+  if (!recipientId || !guestId || !message) {
+    throw new Error("recipient ID, Guest ID, and message are required.");
+  }
+
   const note = {
-    staffId,
+    recipientId,
+    guestId,
     message,
     timestamp: new Date().toISOString(),
   };
 
   const transaction = new TopicMessageSubmitTransaction({
-    topicId: hederatopicId,
+    topicId: hederaTopicId,
     message: JSON.stringify(note),
   });
 
@@ -24,9 +29,25 @@ exports.submitRecognitionNote = async (staffId, message) => {
 
   if (receipt.status.toString() === "SUCCESS") {
     // Save note to MongoDB
-    const recognitionNote = new RecognitionNote({ staffId, message });
+    const recognitionNote = new RecognitionNote({ recipientId, guestId, message });
     await recognitionNote.save();
   }
 
   return receipt.status.toString();
+};
+
+exports.getRecognitionNotes = async (recipientId, page = 1, limit = 10) => {
+  const skip = (page - 1) * limit;
+  const notes = await RecognitionNote.find({ recipientId })
+    .sort({ timestamp: -1 })
+    .skip(skip)
+    .limit(limit);
+  const total = await RecognitionNote.countDocuments({ recipientId });
+
+  return {
+    notes,
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
+  };
 };

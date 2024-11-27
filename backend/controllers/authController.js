@@ -71,7 +71,7 @@ exports.register = async (req, res) => {
     const token = generateToken(user._id);
     res.status(201).json({
       token,
-      user: { _id: user._id, username: user.username, email: user.email, role: user.role, status: user.status },
+      user: { _id: user._id, username: user.username, email: user.email, role: user.role, status: user.status, hederaAccountId: user.hederaAccountId },
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -96,7 +96,7 @@ exports.login = async (req, res) => {
     const token = generateToken(user._id);
     res.status(200).json({
       token,
-      user: { username: user.username, email: user.email, role: user.role, status: user.status },
+      user: { username: user.username, email: user.email, role: user.role, status: user.status, hederaAccountId: user.hederaAccountId },
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

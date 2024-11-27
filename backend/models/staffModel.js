@@ -17,7 +17,9 @@ const staffSchema = new mongoose.Schema(
       default: "inactive",
     },
     hederaAccountId: { type: String, required: true, unique: true },
-    encryptedPrivateKey: { type: String },
+    encryptedPrivateKey: { type: String, required: true },
+    iv: { type: String, required: true },
+    publicKey: { type: String, required: true },
   },
   { timestamps: true }
 );

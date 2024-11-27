@@ -18,7 +18,7 @@ router.get("/", staffController.getAllStaff)
 router.get(
   "/company/:companyId",
   protect,
-  authorize("admin", "teamPool"),
+  authorize("admin", "teamPool", "guest"),
   staffController.getStaffByCompany
 );
 

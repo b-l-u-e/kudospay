@@ -8,7 +8,9 @@ const companySchema = new mongoose.Schema(
     role: { type: String, default: "teamPool" },
     address: { type: String },
     hederaAccountId: { type: String, required: true, unique: true },
-    encryptedPrivateKey: { type: String },
+    encryptedPrivateKey: { type: String, required: true },
+    publicKey: { type: String, required: true },
+    iv: { type: String, required: true },
     staff: [{ type: mongoose.Schema.Types.ObjectId, ref: "Staff" }],
     isActive: { type: Boolean, default: false },
     status: {

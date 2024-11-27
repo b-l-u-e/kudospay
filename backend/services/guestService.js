@@ -2,38 +2,42 @@ const Guest = require("../models/guestModel");
 const bcrypt = require("bcrypt");
 const { generateHederaAccount } = require("../utils/hederaUtils");
 
-
 // Create a new guest account
 exports.createGuest = async (data) => {
   const { username, email, password } = data;
 
-  // Check if the user already exists
-  const existingGuest = await Guest.findOne({ email });
-  if (existingGuest) {
-    throw new Error("A user with this email already exists.");
-  }
+  try {
+    // Check if the user already exists
+    const existingGuest = await Guest.findOne({ email });
+    if (existingGuest) {
+      throw new Error("A user with this email already exists.");
+    }
 
-  // Hash the password if it exists
-  let hashedPassword;
-  if (password) {
+    // Hash the password before saving
     const salt = await bcrypt.genSalt(10);
-    hashedPassword = await bcrypt.hash(password, salt);
-  }
+    const hashedPassword = await bcrypt.hash(password, salt);
 
-  // Generate Hedera Account ID if not provided
-  let hederaAccountId = data.hederaAccountId;
-  if (!hederaAccountId) {
-    const { accountId } = await generateHederaAccount(10);
-    hederaAccountId = accountId;
-  }
+    // Generate Hedera account
+    const { accountId, encryptedPrivateKey, publicKey, iv } =
+      await generateHederaAccount(10);
 
-  const guest = new Guest({
-    username,
-    email,
-    password: hashedPassword,
-    hederaAccountId,
-  });
-  return await guest.save();
+    // Create the guest object
+    const guest = new Guest({
+      username,
+      email,
+      password: hashedPassword,
+      hederaAccountId: accountId,
+      encryptedPrivateKey, // Save encrypted key
+      publicKey,
+      iv, // Save IV
+    });
+
+    // Save the guest to the database
+    return await guest.save();
+  } catch (error) {
+    console.log("Error creating guest: ", error.message);
+    throw new Error("Failed to create guest account.");
+  }
 };
 
 // Retrieve guest by ID

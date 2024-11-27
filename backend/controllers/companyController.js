@@ -64,19 +64,17 @@ exports.getCompanyById = async (req, res) => {
       address,
       staff,
     } = company;
-    res
-      .status(200)
-      .json({
-        company: _id,
-        name,
-        email,
-        hederaAccountId,
-        role,
-        createdAt,
-        status,
-        address,
-        staff,
-      });
+    res.status(200).json({
+      company: _id,
+      name,
+      email,
+      hederaAccountId,
+      role,
+      createdAt,
+      status,
+      address,
+      staff,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -100,7 +98,7 @@ exports.updateCompany = async (req, res) => {
 
 // Activate a company
 exports.activateCompany = async (req, res) => {
-  authorize("admin")
+  authorize("admin");
   try {
     const updatedCompany = await companyService.updateCompanyStatus(
       req.params.companyId,
@@ -117,7 +115,7 @@ exports.activateCompany = async (req, res) => {
 
 // Deactivate a company
 exports.deactivateCompany = async (req, res) => {
-  authorize("admin")
+  authorize("admin");
   try {
     const updatedCompany = await companyService.updateCompanyStatus(
       req.params.companyId,
@@ -131,3 +129,39 @@ exports.deactivateCompany = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// Get active staff for a company
+exports.getActiveStaff = async (req, res) => {
+  try {
+    const { companyId } = req.params;
+
+    // Validate the companyId
+    if (!companyId) {
+      return res.status(400).json({ error: "Company ID is required." });
+    }
+
+    // Fetch active staff using the service
+    const activeStaff = await companyService.getActiveStaff(companyId);
+
+    // Respond with the active staff data
+    res.status(200).json({
+      message: `Active staff for company ${companyId} retrieved successfully.`,
+      activeStaff,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getActiveStaffCount = async (req, res) => {
+  const { companyId } = req.params;
+
+  try {
+    const count = await companyService.getActiveStaffCount(companyId);
+    res.status(200).json({ companyId, activeStaffCount: count });
+  } catch (error) {
+    console.error("Error fetching active staff count:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+

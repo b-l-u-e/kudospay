@@ -7,10 +7,14 @@ const { protect } = require("../middleware/authMiddleware");
 router.post("/create", protect, transactionController.createTransaction);
 
 // Submit a transaction (execute it on Hedera network)
-router.post("/submit", protect, transactionController.submitTransaction);
+router.post("/submit/:transactionId", protect, transactionController.submitTransaction);
 
 // Get transaction status by transactionId
 router.get("/:transactionId/status", protect, transactionController.getTransactionStatus);
+
+router.get("/pending", protect, transactionController.getPendingTransactions);
+router.patch("/:transactionId/status",protect, transactionController.updateTransactionStatus);
+
 
 // List transactions for a specific user
 router.get("/user/:accountId", protect, transactionController.listUserTransactions);
