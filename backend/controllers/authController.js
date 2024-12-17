@@ -17,6 +17,7 @@ exports.register = async (req, res) => {
     password,
     role = "guest",
     hederaAccountId,
+    name,
   } = req.body;
 
   try {
@@ -29,19 +30,23 @@ exports.register = async (req, res) => {
         });
       }
 
-      const existingCompany = await Company.findOne({ $or: [{ name }, { email }] });
+      const existingCompany = await Company.findOne({
+        $or: [{ name }, { email }],
+      });
       if (existingCompany)
         return res.status(400).json({ error: "Company already exists" });
 
       const hashedPassword = await bcrypt.hash(password, 10);
       user = new Company({
-        username,
+        name,
         email,
         password: hashedPassword,
         hederaAccountId,
       });
     } else if (role === "staff") {
-      const existingStaff = await Staff.findOne({ $or: [{ username }, { email }] });
+      const existingStaff = await Staff.findOne({
+        $or: [{ username }, { email }],
+      });
       if (existingStaff)
         return res.status(400).json({ error: "Staff member already exists" });
 
@@ -53,7 +58,9 @@ exports.register = async (req, res) => {
         hederaAccountId,
       });
     } else {
-      const existingGuest = await Guest.findOne({ $or: [{ username }, { email }] });
+      const existingGuest = await Guest.findOne({
+        $or: [{ username }, { email }],
+      });
       if (existingGuest)
         return res.status(400).json({ error: "Guest already exists" });
 
@@ -71,7 +78,14 @@ exports.register = async (req, res) => {
     const token = generateToken(user._id);
     res.status(201).json({
       token,
-      user: { _id: user._id, username: user.username, email: user.email, role: user.role, status: user.status, hederaAccountId: user.hederaAccountId },
+      user: {
+        _id: user._id,
+        name: user.name || user.username,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+        hederaAccountId: user.hederaAccountId,
+      },
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -94,9 +108,22 @@ exports.login = async (req, res) => {
     }
 
     const token = generateToken(user._id);
+    const responseUser = {
+      _id: user._id,
+      name: user.name || user.username,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+      hederaAccountId: user.hederaAccountId,
+    };
+
+    if (user.role === "teamPool") {
+      responseUser.companyId = user._id; // Add companyId
+    }
+
     res.status(200).json({
       token,
-      user: { username: user.username, email: user.email, role: user.role, status: user.status, hederaAccountId: user.hederaAccountId },
+      user: responseUser,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -105,7 +132,7 @@ exports.login = async (req, res) => {
 
 // Register using a token
 exports.registerWithToken = async (req, res) => {
-  const { username, email, password } = req.body;
+  const { username, email, password, name } = req.body;
   const { token } = req.query;
 
   try {
@@ -115,7 +142,7 @@ exports.registerWithToken = async (req, res) => {
     let user;
     if (role === "teamPool") {
       user = new Company({
-        username,
+        name,
         email,
         password: await bcrypt.hash(password, 10),
       });
@@ -138,7 +165,7 @@ exports.registerWithToken = async (req, res) => {
     const userToken = generateToken(user._id);
     res.status(201).json({
       token: userToken,
-      user: { _id: user._id, username: user.username, email, role },
+      user: { _id: user._id, name: user.name || user.username, email, role },
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

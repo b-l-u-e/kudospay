@@ -35,6 +35,7 @@ export const AuthProvider = ({ children }) => {
 
     try {
       localStorage.setItem("user", JSON.stringify(userData)); // Ensure valid data
+      console.log(userData)
       setUser(userData);
     } catch (error) {
       console.error("Error saving user data to localStorage:", error);

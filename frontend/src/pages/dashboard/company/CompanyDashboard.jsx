@@ -1,89 +1,324 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { getCompanyStaff, distributeTips } from "../../../api/companyApi";
+import { fetchAccountDetails } from "../../../api/transactionApi";
+import { fetchRecognitionMessagesByRecipient } from "../../../api/recognitionApi";
+import useAuth from "../../../hooks/useAuth";
+import { format } from "date-fns";
+
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Button from "../../../components/common/Button";
 
 const CompanyDashboard = () => {
-    const [metrics] = useState([
-        { id: 1, label: "Total Staff", value: 25 },
-        { id: 2, label: "Pending Approvals", value: 5 },
-        { id: 3, label: "Total Transactions", value: 150 },
-        { id: 4, label: "Revenue", value: "$20,000" },
-    ]);
+  const { user } = useAuth();
+  const companyAccountId = user?.hederaAccountId;
+  const companyId = user?.companyId;
+  const companyName = user?.name;
 
-    const [recentActivities] = useState([
-        { id: 1, message: "New staff member registered: John Doe", timestamp: "1 hour ago" },
-        { id: 2, message: "Transaction completed: $500 to Staff Pool", timestamp: "2 hours ago" },
-        { id: 3, message: "Profile updated by admin", timestamp: "Yesterday" },
-    ]);
+  const [balance, setBalance] = useState(0);
+  const [staff, setStaff] = useState([]);
+  const [amount, setAmount] = useState("");
+  const [error, setError] = useState("");
 
-    return (
-        <div className="min-h-screen bg-gray-100">
-            <header className="bg-blue-600 text-white p-4 shadow">
-                <div className="max-w-7xl mx-auto flex items-center justify-between">
-                    <h1 className="text-3xl font-bold">Company Dashboard</h1>
-                    <p>Welcome, Company Admin!</p>
-                </div>
-            </header>
+  const [loading, setLoading] = useState(false);
+  const [messagesLoading, setMessagesLoading] = useState(false);
+  const [staffLoading, setStaffLoading] = useState(false);
+  const [recognitionMessages, setRecognitionMessages] = useState([]);
+  const [tipTransactions, setTipTransactions] = useState([]);
 
-            <main className="max-w-7xl mx-auto p-6">
-                {/* Metrics Section */}
-                <section className="mb-8">
-                    <h2 className="text-xl font-semibold mb-4">Company Metrics</h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {metrics.map((metric) => (
-                            <div
-                                key={metric.id}
-                                className="bg-white p-6 rounded shadow text-center hover:shadow-lg transition-shadow"
-                            >
-                                <p className="text-3xl font-bold text-blue-600">{metric.value}</p>
-                                <p className="text-lg text-gray-700">{metric.label}</p>
-                            </div>
-                        ))}
-                    </div>
-                </section>
+  const [isNewCompany, setIsNewCompany] = useState(true);
 
-                {/* Actions Section */}
-                <section className="mb-8">
-                    <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                        <a
-                            href="/company/staff"
-                            className="block p-4 bg-blue-500 text-white rounded shadow hover:bg-blue-600 transition-colors"
-                        >
-                            Manage Staff
-                        </a>
-                        <a
-                            href="/company/transactions"
-                            className="block p-4 bg-green-500 text-white rounded shadow hover:bg-green-600 transition-colors"
-                        >
-                            View Transactions
-                        </a>
-                        <a
-                            href="/company/settings"
-                            className="block p-4 bg-gray-500 text-white rounded shadow hover:bg-gray-600 transition-colors"
-                        >
-                            Configure Settings
-                        </a>
-                    </div>
-                </section>
+  /** Fetch account details including balance and transactions */
+  const loadAccountDetails = useCallback(async () => {
+    if (isNewCompany || !companyAccountId) {
+      console.log("Skipping account details fetch for new company...");
+      setBalance(0); // Default balance for new companies
+      setTipTransactions([]);
+      return;
+    }
 
-                {/* Recent Activity Section */}
-                <section>
-                    <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
-                    <div className="bg-white rounded shadow divide-y">
-                        {recentActivities.length > 0 ? (
-                            recentActivities.map((activity) => (
-                                <div key={activity.id} className="p-4 hover:bg-gray-50">
-                                    <p className="text-gray-700">{activity.message}</p>
-                                    <p className="text-sm text-gray-500">{activity.timestamp}</p>
-                                </div>
-                            ))
-                        ) : (
-                            <p className="p-4 text-gray-500">No recent activity</p>
-                        )}
-                    </div>
-                </section>
-            </main>
+    setLoading(true);
+
+    try {
+      const data = await fetchAccountDetails(companyAccountId);
+
+      setBalance(data.balance.hbarBalance);
+
+      // Extract incoming tips
+      const incomingTips = data.transactions
+        .filter((tx) =>
+          tx.transfers.some(
+            (transfer) =>
+              transfer.account === companyAccountId && transfer.amount > 0
+          )
+        )
+        .map((tx) => {
+          const sender = tx.transfers.find(
+            (transfer) =>
+              transfer.amount < 0 && transfer.account !== companyAccountId
+          );
+          const amount = tx.transfers.find(
+            (transfer) => transfer.account === companyAccountId
+          )?.amount;
+
+          return {
+            id: tx.id,
+            sender: sender?.account || "N/A",
+            amount: (amount / 1e8).toFixed(8),
+            timestamp: format(
+              new Date(parseFloat(tx.timestamp) * 1000),
+              "yyyy-MM-dd HH:mm:ss"
+            ),
+          };
+        });
+      console.log("incoming tips:", incomingTips);
+      setTipTransactions(incomingTips);
+      setIsNewCompany(false);
+      setError("");
+    } catch (err) {
+      console.error("Error fetching account details:", err);
+      toast.error("Failed to load account details.");
+      setIsNewCompany(true);
+    } finally {
+      setLoading(false);
+    }
+  }, [companyAccountId, isNewCompany]);
+
+  /** Fetch staff members */
+  const loadStaff = useCallback(async () => {
+    setStaffLoading(true);
+    try {
+      const staffData = await getCompanyStaff(companyId);
+      console.log("Staff data:", staffData);
+
+      if (staffData?.length > 0) {
+        setIsNewCompany(false); // If staff exists, it’s not a new company
+      }
+
+      setStaff(staffData);
+      toast.success("staff data loaded successfully!");
+    } catch (err) {
+      console.error("Error fetching company staff:", err);
+      toast.error("Failed to load company staff.");
+    } finally {
+      setStaffLoading(false);
+    }
+  }, [companyId]);
+
+  /** Fetch recognition messages */
+  const loadRecognitionMessages = useCallback(async () => {
+    if (!companyAccountId) return;
+
+    setMessagesLoading(true);
+    try {
+      const messages = await fetchRecognitionMessagesByRecipient(
+        companyAccountId
+      );
+      console.log("Messages:", messages);
+      setRecognitionMessages(messages);
+      toast.success("Reviews loaded successfully!");
+    } catch (err) {
+      console.error("Error fetching recognition messages:", err);
+      toast.error("Failed to load recognition messages.");
+    } finally {
+      setMessagesLoading(false);
+    }
+  }, [companyAccountId]);
+
+  /** Handle tip distribution */
+  const handleDistributeTips = async (e) => {
+    e.preventDefault();
+
+    if (!amount || parseFloat(amount) <= 0) {
+      toast.error("Please enter a valid tip amount.");
+      return;
+    }
+    
+    setLoading(true);
+
+    try {
+      await distributeTips(companyAccountId, amount);
+      toast.success(
+        "Tips distributed to the respective staff members successfully!"
+      );
+      setAmount("");
+      await loadAccountDetails(); // Refresh account data
+    } catch (err) {
+      console.error("Error distributing tips:", err);
+      toast.error(
+        err.response?.data?.error ||
+          "Failed to distribute tips. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (companyAccountId) {
+      loadAccountDetails();
+      loadStaff();
+      loadRecognitionMessages();
+    }
+  }, [
+    loadAccountDetails,
+    loadStaff,
+    loadRecognitionMessages,
+    companyAccountId,
+  ]);
+
+  return (
+    <div className="min-h-screen text-gray-800 bg-[#F5EFE7]">
+      <ToastContainer position="top-right" autoClose={3000} />
+
+      {/* Header */}
+      <header className="bg-[#213555] text-white p-6 shadow-lg">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between space-y-2 md:space-y-0">
+          <h1 className="text-3xl font-semibold">Company Dashboard</h1>
+          <p className="text-lg font-semibold">Welcome, {companyName}!</p>
         </div>
-    );
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+        {/* Balance Section */}
+        <section className="bg-white shadow-lg rounded-lg p-6 text-center">
+          <h2 className="text-2xl font-semibold text-gray-700 mb-4">
+            Company Balance: {companyAccountId}
+          </h2>
+          <p className="text-5xl font-extrabold text-[#D8C4B6] animate-pulse">
+            {balance} ℏ
+          </p>
+        </section>
+
+        {/* Distribute Tips */}
+        <section className="bg-white shadow-lg rounded-lg p-6">
+          <h2 className="text-2xl font-semibold text-gray-700 mb-4">
+            Distribute Tips
+          </h2>
+          {error && <p className="text-red-500 mb-4">{error}</p>}
+          <form onSubmit={handleDistributeTips} className="space-y-4">
+            <div>
+              <label className="block text-gray-600 font-medium mb-2">
+                Amount to Distribute (ℏ)
+              </label>
+              <input
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                placeholder="Enter amount"
+                required
+              />
+            </div>
+            <Button
+              type="submit"
+              className={`w-full py-3 px-6 rounded-lg text-white font-semibold transition-all ${
+                loading
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-[#3E5879] hover:bg-[#213555]"
+              }`}
+              disabled={loading}
+            >
+              {loading ? "Distributing..." : "Distribute Tips"}
+            </Button>
+          </form>
+        </section>
+
+        {/* Staff Members */}
+        <section className="bg-white shadow-lg rounded-lg p-6">
+          <h2 className="text-2xl font-semibold text-gray-700 mb-4">
+            Staff Members
+          </h2>
+          {staffLoading ? (
+            <p className="text-blue-500">Loading staff members...</p>
+          ) : (
+            <div className="divide-y divide-gray-200">
+              {staff.map((member) => (
+                <div
+                  key={member._id}
+                  className="py-3 flex justify-between items-center"
+                >
+                  <p className="text-gray-700">{member.username}</p>
+                  <p className="text-sm text-gray-500">
+                    {member.hederaAccountId}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Recognition Messages */}
+        <section className="bg-white shadow-lg rounded-lg p-6">
+          <h2 className="text-2xl font-semibold text-gray-700 mb-4">
+            Reviews from Guests
+          </h2>
+          {messagesLoading && (
+            <p className="text-blue-500">Loading messages...</p>
+          )}
+          {recognitionMessages.length > 0 ? (
+            <ul className="divide-y divide-gray-200">
+              {recognitionMessages.map((message, index) => (
+                <li key={index} className="py-4">
+                  <p className="text-gray-700">
+                    <strong>Message:</strong> {message.message}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    <strong>Timestamp:</strong>{" "}
+                    {message.timestamp
+                      ? format(
+                          new Date(parseFloat(message.timestamp) * 1000),
+                          "yyyy-MM-dd HH:mm:ss"
+                        )
+                      : "No timestamp available"}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            !messagesLoading && (
+              <p className="text-gray-500">No recognition messages found.</p>
+            )
+          )}
+        </section>
+
+        {/* Tip Transactions */}
+        <section className="bg-white shadow-lg rounded-lg p-6">
+          <h2 className="text-2xl font-semibold text-gray-700 mb-4">
+            Tips Received
+          </h2>
+          {loading ? (
+            <p className="animate-pulse text-gray-500">Loading tips...</p>
+          ) : tipTransactions.length > 0 ? (
+            <ul className="divide-y divide-gray-200">
+              {tipTransactions.map((tx) => (
+                <li key={tx.id} className="py-4">
+                  <p>
+                    <strong>Transaction ID:</strong> {tx.id}
+                  </p>
+                  <p>
+                    <strong>Sender:</strong> {tx.sender}
+                  </p>
+                  <p>
+                    <strong>Amount Received:</strong>{" "}
+                    <span className="text-blue-600 font-semibold">
+                      {tx.amount} ℏ
+                    </span>
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    <strong>Timestamp:</strong> {tx.timestamp}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-500">No tips received yet.</p>
+          )}
+        </section>
+      </main>
+    </div>
+  );
 };
 
 export default CompanyDashboard;

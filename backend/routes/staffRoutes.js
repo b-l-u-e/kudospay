@@ -12,6 +12,9 @@ router.post(
   staffController.registerStaff
 );
 
+// Get staff details by ID
+router.get("/:staffId/details",protect,  staffController.getStaffDetails);
+
 router.get("/", staffController.getAllStaff)
 
 // Get staff by company

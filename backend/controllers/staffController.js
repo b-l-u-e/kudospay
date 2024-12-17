@@ -96,3 +96,23 @@ exports.deactivateStaff = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+exports.getStaffDetails = async (req, res) => {
+  const { staffId } = req.params;
+
+  try {
+    if (!staffId) {
+      return res.status(400).json({ error: "Staff ID is required." });
+    }
+
+    const staffDetails = await staffService.getStaffDetails(staffId);
+
+    res.status(200).json({
+      message: "Staff details retrieved successfully",
+      staff: staffDetails,
+    });
+  } catch (error) {
+    console.error("Error in staffController.getStaffDetails:", error.message);
+    res.status(500).json({ error: error.message || "Failed to fetch staff details" });
+  }
+};

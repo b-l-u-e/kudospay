@@ -5,6 +5,7 @@ import {
   deactivateStaff,
   getAllStaff,
 } from "../../../api/staffApi";
+import Button from "../../../components/common/Button"
 
 
 const StaffManagement = () => {
@@ -22,10 +23,10 @@ const StaffManagement = () => {
   const fetchStaff = async () => {
     try {
       const response = await getAllStaff();
-      setStaff(response.data);
+      setStaff(response);
       setError("");
     } catch (err) {
-      setError(err.response?.data?.error || "Failed to fetch staff.");
+      setError(err.response.error || "Failed to fetch staff.");
     }
   };
 
@@ -58,9 +59,9 @@ const StaffManagement = () => {
     } catch (err) {
       console.error(
         "Error registering staff:",
-        err.response?.data || err.message
+        err.response.error || err.message
       );
-      setError(err.response?.data?.error || "Failed to register staff.");
+      setError(err.response?.error || "Failed to register staff.");
     }
   };
 
@@ -81,7 +82,7 @@ const StaffManagement = () => {
       setSuccess("Staff member activated successfully!");
       fetchStaff();
     } catch (err) {
-      setError(err.response?.data?.error || "Failed to activate staff.");
+      setError(err.response?.error || "Failed to activate staff.");
     } finally {
       setLoadingButton(null);
     }
@@ -93,14 +94,14 @@ const StaffManagement = () => {
       setSuccess("Staff member deactivated successfully!");
       fetchStaff();
     } catch (err) {
-      setError(err.response?.data?.error || "Failed to deactivate staff.");
+      setError(err.response?.error || "Failed to deactivate staff.");
     } finally {
       setLoadingButton(null);
     }
   };
 
   return (
-    <div>
+    <div className="ml-10">
       <h1 className="text-2xl font-bold mb-4">Staff Management</h1>
 
       {/* Feedback Messages */}
@@ -108,7 +109,7 @@ const StaffManagement = () => {
       {success && <p className="text-green-500 mb-4">{success}</p>}
 
       {/* Staff Registration/Update Form */}
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4 mb-4">
         <input
           type="text"
           name="username"
@@ -143,12 +144,12 @@ const StaffManagement = () => {
           placeholder="Hedera Account ID"
           className="w-full px-4 py-2 border rounded"
         />
-        <button
+        <Button
           type="submit"
-          className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          className="mt-4 text-white px-4 py-2 rounded hover:bg-[#213555]"
         >
           Register staff
-        </button>
+        </Button>
       </form>
 
       {/* staff List */}
@@ -160,12 +161,12 @@ const StaffManagement = () => {
                             key={staff._id}
                             className="border-b py-2 flex justify-between items-center"
                         >
-                            <span>
-                                {staff.name} - {staff.email} - {staff.status}
-                            </span>
+                            <p>
+                                <span className="text-2xl text-">{staff.username} </span>  - {staff.status}
+                            </p>
                             <div>
                                 {staff.status === "inactive" ? (
-                                    <button
+                                    <Button
                                         onClick={() => handleActivate(staff._id)}
                                         className={`bg-green-500 text-white px-4 py-1 rounded hover:bg-green-600 ${
                                             loadingButton === staff._id ? "opacity-50 cursor-not-allowed" : ""
@@ -173,9 +174,9 @@ const StaffManagement = () => {
                                         disabled={loadingButton === staff._id}
                                     >
                                         {loadingButton === staff._id ? "Activating..." : "Activate"}
-                                    </button>
+                                    </Button>
                                 ) : (
-                                    <button
+                                    <Button
                                         onClick={() => handleDeactivate(staff._id)}
                                         className={`bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600 ${
                                             loadingButton === staff._id ? "opacity-50 cursor-not-allowed" : ""
@@ -183,7 +184,7 @@ const StaffManagement = () => {
                                         disabled={loadingButton === staff._id}
                                     >
                                         {loadingButton === staff._id ? "Deactivating..." : "Deactivate"}
-                                    </button>
+                                    </Button>
                                 )}
                             </div>
                         </li>

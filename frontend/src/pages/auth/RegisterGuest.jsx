@@ -3,6 +3,10 @@ import { registerGuest } from "../../api/guestApi";
 import useAuth from "../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Button from "../../components/common/Button";
+
 const RegisterGuest = () => {
   const [formData, setFormData] = useState({
     username: "",
@@ -11,7 +15,6 @@ const RegisterGuest = () => {
     hederaAccountId: "", // Optional input
   });
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -24,8 +27,7 @@ const RegisterGuest = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
-    setSuccess("");
+    
 
     try {
       const { data } = await registerGuest(formData);
@@ -49,10 +51,10 @@ const RegisterGuest = () => {
         login(token, guest);
       }
 
-      setSuccess("Registration successful! Redirecting...");
+      toast.success("Registration successful! Redirecting...");
       setTimeout(() => navigate("/guest/dashboard"), 2000);
     } catch (err) {
-      setError(
+      toast.error(
         err.response?.data?.error || "Registration failed. Please try again."
       );
     } finally {
@@ -61,13 +63,14 @@ const RegisterGuest = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-100">
+    <div className="flex justify-center items-center min-h-screen bg-[#F5EFE7]">
+      <ToastContainer position="top-right" autoClose={3000} />
       <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-lg">
-        <h2 className="text-3xl font-extrabold text-center text-blue-600 mb-6">
+        <h2 className="text-3xl font-extrabold text-center text-[#213555] mb-6">
           Guest Registration
         </h2>
         {error && <div className="text-red-500 text-center mb-4">{error}</div>}
-        {success && <div className="text-green-500 text-center mb-4">{success}</div>}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Name */}
           <div>
@@ -80,7 +83,7 @@ const RegisterGuest = () => {
               name="username"
               value={formData.username}
               onChange={handleChange}
-              className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-400"
+              className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-[#213555]"
               required
             />
           </div>
@@ -96,7 +99,7 @@ const RegisterGuest = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-400"
+              className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-[#213555]"
               required
             />
           </div>
@@ -112,7 +115,7 @@ const RegisterGuest = () => {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-400"
+              className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-[#213555]"
               required
             />
           </div>
@@ -132,24 +135,24 @@ const RegisterGuest = () => {
               placeholder="0.0.xxxx"
               value={formData.hederaAccountId}
               onChange={handleChange}
-              className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-400"
+              className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-[#213555]"
             />
           </div>
 
           {/* Submit Button */}
-          <button
+          <Button
             type="submit"
             className={`w-full py-2 rounded-lg text-white ${
-              loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-600"
+              loading ? "bg-gray-400 cursor-not-allowed" : "bg-[#3E5879] hover:bg-[#213555]"
             }`}
             disabled={loading}
           >
             {loading ? "Registering..." : "Register"}
-          </button>
+          </Button>
         </form>
         <p className="text-center text-gray-600 mt-6">
           Do you have an account?{" "}
-          <a href="/login" className="text-blue-500 hover:underline">
+          <a href="/login" className="text-[#3E5879] hover:underline">
             Login here
           </a>
         </p>

@@ -102,3 +102,28 @@ exports.updateStaffStatus = async (staffId, status) => {
   }
   return updatedStaff;
 };
+
+exports.getStaffDetails = async (staffId) => {
+  try {
+    const staff = await Staff.findById(staffId).populate("companyId", "name");
+
+    if (!staff) {
+      console.log("Staff member not found.");
+      return res.status(404).json({ error: "Staff member not found." });
+    }
+
+    console.log("Staff details fetched:", staff);
+    
+
+    return {
+      id: staff._id,
+      username: staff.username,
+      email: staff.email,
+      isActive: staff.status === "active",
+      companyName: staff.companyId?.name || "N/A",
+    };
+  } catch (error) {
+    console.error("Error in staffService.getStaffDetails:", error.message);
+    throw new Error(error.message || "Failed to fetch staff details");
+  }
+};

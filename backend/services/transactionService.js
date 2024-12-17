@@ -417,3 +417,30 @@ exports.updateTransactionStatus = async (transactionId, status) => {
     throw new Error(`Failed to update transaction status: ${error.message}`);
   }
 };
+
+// Fetch the account balance for a given account ID
+exports.getAccountBalance = async (accountId) => {
+  try {
+    if (!accountId) {
+      throw new Error("Account ID is required.");
+    }
+
+    console.log(`Fetching account balance for account ID: ${accountId}`);
+
+    const balanceQuery = await new AccountBalanceQuery()
+      .setAccountId(accountId)
+      .execute(client);
+
+    console.log(`Account balance for ${accountId}: ${balanceQuery.hbars.toString()}`);
+
+    return {
+      accountId,
+      balance: balanceQuery.hbars.toTinybars(), // Return balance in tinybars
+    };
+  } catch (error) {
+    console.error("Error fetching account balance:", error.message);
+    throw new Error("Failed to fetch account balance. Please try again.");
+  }
+};
+
+

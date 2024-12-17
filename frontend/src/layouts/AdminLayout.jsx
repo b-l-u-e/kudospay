@@ -1,29 +1,27 @@
 import Navbar from "../components/common/Navbar";
 import Footer from "../components/common/Footer";
-import Sidebar from "../components/common/Sidebar";
+import PropTypes from "prop-types";
 
-// eslint-disable-next-line react/prop-types
 const AdminLayout = ({ children }) => {
-    const adminLinks = [
-        { label: "Dashboard", path: "/admin/dashboard" },
-        { label: "Users", path: "/admin/users" },
-        { label: "Companies", path: "/admin/companies" },
-        { label: "Settings", path: "/admin/settings" },
-    ];
+  
 
     return (
         <div className="flex">
-            {/* Sidebar */}
-            <Sidebar links={adminLinks} />
+        
 
             {/* Main Content Area */}
-            <div className="flex flex-col flex-grow">
+            <div className="flex flex-col flex-grow bg-[#F5EFE7] min-h-screen transition-all duration-300">
                 <Navbar />
-                <main className="p-4 flex-grow bg-gray-100">{children}</main>
+                <main className="p-6 overflow-auto flex-grow">{children}</main>
                 <Footer />
             </div>
         </div>
     );
+};
+
+// Add prop types validation
+AdminLayout.propTypes = {
+    children: PropTypes.node.isRequired,
 };
 
 export default AdminLayout;

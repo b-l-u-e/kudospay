@@ -3,6 +3,10 @@ import { registerCompany } from "../../api/companyApi";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Button from "../../components/common/Button";
+
 const RegisterCompany = () => {
   const [formData, setFormData] = useState({
     name: "",
@@ -10,8 +14,7 @@ const RegisterCompany = () => {
     password: "",
     hederaAccountId: "",
   });
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+ 
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -24,37 +27,49 @@ const RegisterCompany = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
-    setSuccess("");
+  
 
     try {
       const { data } = await registerCompany(formData);
+
+      if (!/\S+@\S+\.\S+/.test(formData.email)) {
+        toast.error("Please enter a valid email address.");
+        return;
+      }
+    
+      if (
+        formData.hederaAccountId &&
+        !/^0\.0\.[0-9]+$/.test(formData.hederaAccountId)
+      ) {
+        toast.error("Please enter a valid Hedera Account ID (e.g., 0.0.xxxx).");
+        return;
+      }
+
       const { token, teamPool } = data;
 
       if (token && teamPool) {
         login(token, teamPool);
       }
 
-      setSuccess("Registration submitted for approval. Redirecting...");
+      toast.success("Registration submitted for approval. Redirecting...");
       setTimeout(() => navigate("/pending-approval"), 2000);
     } catch (err) {
-      setError(err.response?.data?.message || "Registration failed");
+      toast.error(err.response?.data?.message || "Registration failed");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-100">
+    <div className="flex justify-center items-center min-h-screen bg-[#F5EFE7]">
+      <ToastContainer position="top-right" autoClose={3000} />
       <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-lg">
-        <h2 className="text-3xl font-extrabold text-center text-blue-600 mb-6">
+        <h2 className="text-3xl font-extrabold text-center text-[#213555] mb-6">
           Company Registration
         </h2>
-        {error && <div className="text-red-500 text-center mb-4">{error}</div>}
-        {success && <div className="text-green-500 text-center mb-4">{success}</div>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium">
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
               Company Name
             </label>
             <input
@@ -63,7 +78,7 @@ const RegisterCompany = () => {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-400"
+              className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-[#213555]"
               required
             />
           </div>
@@ -77,7 +92,7 @@ const RegisterCompany = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-400"
+              className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-[#213555]"
               required
             />
           </div>
@@ -91,7 +106,7 @@ const RegisterCompany = () => {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-400"
+              className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-[#213555]"
               required
             />
           </div>
@@ -106,22 +121,22 @@ const RegisterCompany = () => {
               value={formData.hederaAccountId}
               onChange={handleChange}
               placeholder="0.0.xxxx"
-              className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-400"
+              className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-[#213555]"
             />
           </div>
-          <button
+          <Button
             type="submit"
             className={`w-full py-2 rounded-lg text-white ${
-              loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-600"
+              loading ? "bg-gray-400 cursor-not-allowed" : "bg-[#213555] hover:bg-[#213555]"
             }`}
             disabled={loading}
           >
             {loading ? "Registering..." : "Register"}
-          </button>
+          </Button>
         </form>
         <p className="text-center text-gray-600 mt-6">
           Do you have an account?{" "}
-          <a href="/login" className="text-blue-500 hover:underline">
+          <a href="/login" className="text-[#213555]  hover:underline">
             Login here
           </a>
         </p>

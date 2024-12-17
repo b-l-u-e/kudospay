@@ -68,7 +68,12 @@ export const getUserTransactions = async (accountId) => {
 };
 
 // Tip an individual staff member
-export const sendIndividualTip = async ({ guestId, staffId, amount, memo="" }) => {
+export const sendIndividualTip = async ({
+  guestId,
+  staffId,
+  amount,
+  memo = "",
+}) => {
   try {
     const response = await API.post("/transactions/tip/individual", {
       guestId,
@@ -87,13 +92,18 @@ export const sendIndividualTip = async ({ guestId, staffId, amount, memo="" }) =
 };
 
 // Tip a team/company
-export const sendTeamTip = async ({ guestId, teamPoolId, amount, memo="" }) => {
+export const sendTeamTip = async ({
+  guestId,
+  teamPoolId,
+  amount,
+  memo = "",
+}) => {
   try {
     const response = await API.post("/transactions/tip/team", {
       guestId,
       teamPoolId,
       amount,
-      memo, 
+      memo,
     });
     return response.data;
   } catch (error) {
@@ -107,30 +117,42 @@ export const sendTeamTip = async ({ guestId, teamPoolId, amount, memo="" }) => {
 
 // Fetch pending transactions
 export const getPendingTransactions = async () => {
-    try {
-      const response = await API.get("/transactions/pending");
-      return response.data;
-    } catch (error) {
-      console.error(
-        "Error fetching pending transactions:",
-        error.response?.data || error.message
-      );
-      throw error;
-    }
-  };
-  
-  // Update transaction status
-  export const updateTransactionStatus = async (transactionId, status) => {
-    try {
-      const response = await API.patch(`/transactions/${transactionId}/status`, {
-        status,
-      });
-      return response.data;
-    } catch (error) {
-      console.error(
-        "Error updating transaction status:",
-        error.response?.data || error.message
-      );
-      throw error;
-    }
-  };
+  try {
+    const response = await API.get("/transactions/pending");
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error fetching pending transactions:",
+      error.response?.data || error.message
+    );
+    throw error;
+  }
+};
+
+// Update transaction status
+export const updateTransactionStatus = async (transactionId, status) => {
+  try {
+    const response = await API.patch(`/transactions/${transactionId}/status`, {
+      status,
+    });
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error updating transaction status:",
+      error.response?.data || error.message
+    );
+    throw error;
+  }
+};
+
+export const fetchAccountDetails = async (accountId) => {
+  try {
+    const response = await API.get(`/transactions/${accountId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching account details:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+

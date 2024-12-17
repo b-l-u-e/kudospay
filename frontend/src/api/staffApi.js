@@ -6,7 +6,33 @@ export const registerStaff = async (staffData) => {
     return await API.post("/staff/register", staffData);
 }
 
-export const getAllStaff = () => API.get("/staff")
+// Fetch staff details by ID
+export const getStaffDetails = async (staffId) => {
+    console.log("Fetching details for staff ID:", staffId);
+    try {
+      const response = await API.get(`/staff/${staffId}/details`);
+      console.log("API Response for Staff Details:", response.data);
+      return response.data.staff; // Extract the staff details from the response
+    } catch (error) {
+      console.error("Error fetching staff details:", error.response?.data || error.message);
+      throw error;
+    }
+  };
+
+export const getAllStaff = async () => {
+  try {
+    const response = await API.get("/staff");
+    console.log("getAllStaff response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error fetching staff:",
+      error.response?.data || error.message
+    );
+    throw error;
+  }
+} 
+
 
 
 // Get staff members by company ID (admin or teamPool)

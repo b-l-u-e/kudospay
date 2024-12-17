@@ -44,8 +44,22 @@ app.use("/api/v1/hedera", hederaRoutes);
 
 // Health Check Route
 app.get("/", (req, res) => {
-  res.status(200).json({ message: "API is running..." });
+  res.status(200).json({
+    message: "API is running...",
+    version: "1.0.0",
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+  });
 });
+
+
+app.use((err, req, res, next) => {
+  const statusCode = err.status || 500;
+  res.status(statusCode).json({
+    error: err.message || "Internal Server Error",
+  });
+});
+
 
 // Handle 404 Errors
 app.use((req, res, next) => {

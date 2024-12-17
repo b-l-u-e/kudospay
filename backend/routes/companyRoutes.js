@@ -5,7 +5,7 @@ const { protect, authorize } = require("../middleware/authMiddleware");
 
 router.post("/register", companyController.registerCompany);
 
-router.get("/",protect, companyController.getAllCompanies);
+router.get("/", protect, companyController.getAllCompanies);
 
 router.get(
   "/:companyId",
@@ -41,6 +41,62 @@ router.get(
   companyController.getActiveStaff
 );
 
-router.get("/:companyId/active-staff/count",protect, companyController.getActiveStaffCount);
+router.get(
+  "/:companyId/active-staff/count",
+  protect,
+  companyController.getActiveStaffCount
+);
+
+router.get(
+  "/:companyId/balance",
+  protect,
+  companyController.getCompanyBalance
+);
+
+router.get(
+  "/:companyId/staff",
+  protect,
+  companyController.getCompanyStaff
+);
+
+router.post(
+  "/:companyId/distribute",
+  protect,
+  companyController.distributeTips
+);
+
+router.get(
+  "/:companyId/transactions",
+  protect,
+  companyController.getCompanyTransactions
+);
+
+router.get(
+  "/:companyId/recognition-notes",
+  protect,
+  companyController.getRecognitionNotes
+);
+
+router.post(
+  "/:companyId/staff",
+  protect,
+  companyController.addStaff
+);
+
+router.patch(
+  "/:companyId/staff",
+  protect,
+  companyController.updateStaff
+);
+
+router.delete(
+  "/:companyId/staff",
+  protect,
+  companyController.deleteStaff
+);
+
+router.post("/:hederaAccountId/distribute", companyController.distributeTips);
+
+
 
 module.exports = router;

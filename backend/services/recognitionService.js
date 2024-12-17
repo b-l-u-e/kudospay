@@ -36,18 +36,4 @@ exports.submitRecognitionNote = async ({recipientId, guestId, message}) => {
   return receipt.status.toString();
 };
 
-exports.getRecognitionNotes = async (recipientId, page = 1, limit = 10) => {
-  const skip = (page - 1) * limit;
-  const notes = await RecognitionNote.find({ recipientId })
-    .sort({ timestamp: -1 })
-    .skip(skip)
-    .limit(limit);
-  const total = await RecognitionNote.countDocuments({ recipientId });
 
-  return {
-    notes,
-    total,
-    page,
-    totalPages: Math.ceil(total / limit),
-  };
-};
