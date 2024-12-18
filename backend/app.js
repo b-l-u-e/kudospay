@@ -3,7 +3,16 @@ const app = express();
 const morgan = require("morgan");
 const cors = require("cors");
 const helmet = require("helmet");
+const path = require('path');
+
 require("dotenv").config();
+
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Serve the favicon.ico explicitly
+app.use('/favicon.ico', express.static(path.join(__dirname, 'public/favicon.ico')));
+
 
 // Middleware for parsing JSON bodies
 app.use(express.json());
