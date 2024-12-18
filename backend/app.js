@@ -21,7 +21,11 @@ app.use(
 app.use(express.json());
 
 // Enable CORS for frontend-backend communication
-app.use(cors());
+app.use(cors({
+  origin: "https://old-shoe-crashing.on-fleek.app", // Allow requests from your frontend
+  methods: ["GET", "POST", "PUT", "DELETE"], // Specify allowed HTTP methods
+  credentials: true, // Allow cookies or authentication headers
+}));
 
 // Enhance security with HTTP headers
 app.use(helmet());
