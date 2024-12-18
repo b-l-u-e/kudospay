@@ -6,5 +6,5 @@ const {port} = require("./config/env")
 connectDB()
 
 app.listen(port, () => {
-    console.log(`Server is running`)
+    console.log(`Server is running in ${port}`)
 })

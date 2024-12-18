@@ -3,16 +3,19 @@ const app = express();
 const morgan = require("morgan");
 const cors = require("cors");
 const helmet = require("helmet");
-const path = require('path');
+const path = require("path");
+
 
 require("dotenv").config();
 
 // Serve static files from the public directory
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, "public")));
 
 // Serve the favicon.ico explicitly
-app.use('/favicon.ico', express.static(path.join(__dirname, 'public/favicon.ico')));
-
+app.use(
+  "/favicon.ico",
+  express.static(path.join(__dirname, "public/favicon.ico"))
+);
 
 // Middleware for parsing JSON bodies
 app.use(express.json());
@@ -24,31 +27,31 @@ app.use(cors());
 app.use(helmet());
 
 // Log HTTP requests
-app.use(morgan("dev")); 
+app.use(morgan("dev"));
 
-// importing and use tipping routes
 const transactionRoutes = require("./routes/transactionRoutes");
+const recognitionRoutes = require("./routes/recognitionRoutes");
+const authRoutes = require("./routes/authRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+const companyRoutes = require("./routes/companyRoutes");
+const guestRoutes = require("./routes/guestRoutes");
+const staffRoutes = require("./routes/staffRoutes");
+const hederaRoutes = require("./routes/hederaRoutes");
+
 app.use("/api/v1/transactions", transactionRoutes);
 
-const recognitionRoutes = require("./routes/recognitionRoutes");
 app.use("/api/v1/recognition", recognitionRoutes);
 
-const authRoutes = require("./routes/authRoutes");
 app.use("/api/v1/auth", authRoutes);
 
-const adminRoutes = require("./routes/adminRoutes");
 app.use("/api/v1/admin", adminRoutes);
 
-const companyRoutes = require("./routes/companyRoutes");
 app.use("/api/v1/companies", companyRoutes);
 
-const guestRoutes = require("./routes/guestRoutes");
 app.use("/api/v1/guests", guestRoutes);
 
-const staffRoutes = require("./routes/staffRoutes");
 app.use("/api/v1/staff", staffRoutes);
 
-const hederaRoutes = require("./routes/hederaRoutes");
 app.use("/api/v1/hedera", hederaRoutes);
 
 // Health Check Route
@@ -61,14 +64,12 @@ app.get("/", (req, res) => {
   });
 });
 
-
 app.use((err, req, res, next) => {
   const statusCode = err.status || 500;
   res.status(statusCode).json({
     error: err.message || "Internal Server Error",
   });
 });
-
 
 // Handle 404 Errors
 app.use((req, res, next) => {

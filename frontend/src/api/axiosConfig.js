@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Create Axios instance
 const API = axios.create({
-  baseURL: "http://localhost:5000/api/v1", // Proxy ensures requests are sent to backend
+  baseURL: "https://kudospay.onrender.com/api/v1", // Proxy ensures requests are sent to backend
   headers: {
     "Cache-Control": "no-cache", // Prevent caching
     Pragma: "no-cache", // For backward compatibility
