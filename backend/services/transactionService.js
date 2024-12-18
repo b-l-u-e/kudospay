@@ -31,7 +31,7 @@ const getDecryptedPrivateKey = async (accountId) => {
 // Send individual tip
 exports.sendIndividualTip = async (guestId, staffId, amount) => {
   try {
-    console.log("Starting sendIndividualTip...");
+    // console.log("Starting sendIndividualTip...");
 
     // Fetch and decrypt the guest's private key
     const guestPrivateKeyDecrypted = await getDecryptedPrivateKey(guestId);
@@ -45,7 +45,7 @@ exports.sendIndividualTip = async (guestId, staffId, amount) => {
     // Convert the decrypted key into a PrivateKey object
     const guestPrivateKey = PrivateKey.fromString(guestPrivateKeyDecrypted);
 
-    console.log("PrivateKey object created.");
+    // console.log("PrivateKey object created.");
     setOperator(guestId, guestPrivateKey);
 
     const transaction = await new TransferTransaction()

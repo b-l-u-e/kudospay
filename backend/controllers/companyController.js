@@ -220,7 +220,7 @@ exports.distributeTips = async (req, res) => {
         .json({ error: "Company is not active. Cannot distribute tips." });
     }
 
-    console.log("Initiating tip distribution for company:", company.name);
+    // console.log("Initiating tip distribution for company:", company.name);
 
     // Call the distributeTeamTip service with the company's Hedera Account ID
     const distributedTransactions = await transactionService.distributeTeamTip(
