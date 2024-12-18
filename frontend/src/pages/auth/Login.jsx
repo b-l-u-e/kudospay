@@ -55,8 +55,8 @@ const Login = () => {
     <div className="flex justify-center items-center min-h-screen bg-[#F5EFE7]">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
         {/* Logo Section */}
-        <div className="flex justify-center mb-6">
-          <img src={logo} alt="KudosPay Logo" className="h-16 w-auto" />
+        <div className="flex justify-center">
+          <img src={logo} alt="KudosPay Logo" className="w-40 h-20 object-cover" />
         </div>
         
         <h2 className="text-3xl font-extrabold text-center text-[#213555] mb-6">
