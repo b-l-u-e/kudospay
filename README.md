@@ -1,7 +1,3 @@
-Here is the updated `README.md` with the inclusion of **Mirror Nodes** for real-time transaction and message retrieval, along with the other enhancements you mentioned.
-
----
-
 # KudosPay - Decentralized Tipping Platform
 
 ### Description
